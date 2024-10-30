@@ -1,5 +1,7 @@
 import xml.etree.ElementTree as ET
 import json
+import cv2 as cv
+import matplotlib.pyplot as plt
 
 data_root = "../Data/Potholes"
 def get_split_ids(train=True):
@@ -29,5 +31,10 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
+def box_plotter(image, boxes, save_path='./figures/000_box_plotter.jpg'):
+    for b in boxes:
+        x, y, w, h = b
+        cv.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 1, cv.LINE_AA)
 
-
+    plt.imshow(cv.cvtColor(image, cv.COLOR_BGR2RGB))  # Convert to RGB for matplotlib
+    plt.savefig(save_path, bbox_inches='tight', pad_inches=0)

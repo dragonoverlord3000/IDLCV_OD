@@ -4,6 +4,11 @@ import matplotlib.pyplot as plt
 import selectivesearch
 
 from selectivesearch import selective_search
+import sys
+import os
+
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+from helpers import box_plotter
 # Load the image
 
 def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10):
@@ -77,3 +82,4 @@ if __name__=="__main__":
 
     boxes = _SelectiveSearch(resized_image, size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10)
 
+    box_plotter(resized_image,boxes, save_path+'/1.png')
