@@ -75,5 +75,5 @@ if __name__=="__main__":
     # Resize the image to the new dimensions
     resized_image = cv2.resize(image, (new_width, new_height))
 
-    _SelectiveSearch(resized_image, size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10)
+    boxes = _SelectiveSearch(resized_image, size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10)
 

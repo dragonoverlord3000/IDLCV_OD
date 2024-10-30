@@ -21,7 +21,8 @@ print(
     f"Number of shapes: {len(np.unique(im_shapes))}, \n",
     f"Largest image: {max(*im_shapes, key=lambda sz: sz[0]*sz[1])}, \n",
     f"Smallest image: {min(*im_shapes, key=lambda sz: sz[0]*sz[1])}, \n",
-    f"All square: {all(sz[0] == sz[1] for sz in im_shapes)}\n"
+    f"All square: {all(sz[0] == sz[1] for sz in im_shapes)}, \n",
+    f"Example image file path: {data_files[0]} \n"
 )
 
 ############################
