@@ -31,6 +31,24 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
+def _EdgeBox(model_path="./hugo_time/model.ymz.gz", image):
+    model = model_path
+    im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
+
+    edge_detection = cv.ximgproc.createStructuredEdgeDetection(model)
+    rgb_im = cv.cvtColor(im, cv.COLOR_BGR2RGB)
+    edges = edge_detection.detectEdges(np.float32(rgb_im) / 255.0)
+
+    orimap = edge_detection.computeOrientation(edges)
+    edges = edge_detection.edgesNms(edges, orimap)
+
+    edge_boxes = cv.ximgproc.createEdgeBoxes()
+    edge_boxes.setMaxBoxes(30)
+    boxes, probs = edge_boxes.getBoundingBoxes(edges, orimap)
+
+    return boxes
+
+
 def box_plotter(image, boxes, save_path='./figures/000_box_plotter.jpg'):
     for b in boxes:
         x, y, w, h = b
