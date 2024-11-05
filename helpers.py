@@ -31,7 +31,7 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
-def _EdgeBox(model_path="./hugo_time/model.ymz.gz", image):
+def _EdgeBox(image, num_boxes=30, model_path="./hugo_time/model.ymz.gz"):
     model = model_path
     im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
 
@@ -43,7 +43,7 @@ def _EdgeBox(model_path="./hugo_time/model.ymz.gz", image):
     edges = edge_detection.edgesNms(edges, orimap)
 
     edge_boxes = cv.ximgproc.createEdgeBoxes()
-    edge_boxes.setMaxBoxes(30)
+    edge_boxes.setMaxBoxes(num_boxes)
     boxes, probs = edge_boxes.getBoundingBoxes(edges, orimap)
 
     return boxes
