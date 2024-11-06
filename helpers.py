@@ -33,7 +33,7 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
-def _EdgeBox(image, num_boxes=30, model_path="./hugo_time/model.ymz.gz"):
+def _EdgeBox(image, num_boxes=30, model_path="/zhome/51/7/168082/Desktop/s214659/02516_IDLCV/IDLCV_OD/hugo_time/model.yml.gz"):
     model = model_path
     im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
 
