@@ -77,7 +77,7 @@ def IoU(GT, proposal):
     """
     px,py,pw,ph = proposal
     max_iou = 0
-    for x,y,w,h in GT:
+    for name, x,y,w,h in GT:
         inter = intersection(px,py,pw,ph,x,y,w,h)
         max_iou = max(max_iou, inter/(pw*ph + w*h - inter))
 
