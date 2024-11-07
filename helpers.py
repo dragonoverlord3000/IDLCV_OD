@@ -110,6 +110,25 @@ def get_proposals(image, GT, num_pos_proposals, num_neg_proposals, k1, k2, gener
 
     return pos_proposals, neg_proposals
 
+
+def cut_patches(image, image_name, pos_proposals, neg_proposals, path):
+    for i in range(len(neg_proposals)):
+        x, y, w, h = neg_proposals[i]
+        image_patch = image[y:y+h, x:x+w, :] # Note ordering!!!
+        plt.axis('off')
+        plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
+        plt.savefig(path + f"{image_name}_neg{i}.png", bbox_inches='tight', pad_inches=0)
+
+    for i in range(len(pos_proposals)):
+        x, y, w, h = pos_proposals[i]
+        
+        image_patch = image[y:y+h, x:x+w, :] # Note ordering!!!
+        plt.axis('off')
+        plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
+        plt.savefig(path + f"{image_name}_pos{i}.png", bbox_inches='tight', pad_inches=0)
+    
+    print('# Successfully saved image patches')
+
 import cv2
 import selectivesearch
 import matplotlib.pyplot as plt
@@ -151,7 +170,7 @@ def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_si
         x, y, w, h = r['rect']
     
         # Avoid division by zero by checking if height or width is zero
-        if h == 0 or w == 0:
+        if h < 20 or w < 20:
             continue  # Skip this region if it has zero height or width
     
         # Check the aspect ratio of the region (width / height and height / width)
