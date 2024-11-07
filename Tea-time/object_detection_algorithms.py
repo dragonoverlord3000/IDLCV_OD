@@ -70,8 +70,8 @@ def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_si
 
 
 if __name__=="__main__":
-    image_path = '/zhome/88/7/117159/Courses/IDLCV_OD/Data/Potholes/annotated-images/img-1.jpg'
-    save_path = '/zhome/88/7/117159/Courses/IDLCV_OD/Tea-time/figures/selective_search'
+    image_path = '../Data/Potholes/annotated-images/img-299.jpg'
+    save_path = './figures/selective_search'
     image = cv2.imread(image_path)
 
     new_height = int(image.shape[1] / 4)
@@ -83,3 +83,4 @@ if __name__=="__main__":
     boxes = _SelectiveSearch(resized_image, size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10)
 
     box_plotter(resized_image,boxes, save_path+'/1.png')
+    print('saved')
