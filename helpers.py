@@ -56,7 +56,7 @@ def box_plotter(image, boxes, save_path='./figures/000_box_plotter.jpg'):
     for b in boxes:
         x, y, w, h = b
         cv.rectangle(image, (x, y), (x+w, y+h), (0, 255, 0), 1, cv.LINE_AA)
-
+    plt.axis('off')
     plt.imshow(cv.cvtColor(image, cv.COLOR_BGR2RGB))  # Convert to RGB for matplotlib
     plt.savefig(save_path, bbox_inches='tight', pad_inches=0)
 
@@ -183,13 +183,13 @@ def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_si
     #returns list of (x, y, w, h)
     return list(candidates)
 
-testing_selective_search = False
+testing_selective_search = True
 if testing_selective_search:
-    image_path = '/zhome/88/7/117159/Courses/IDLCV_OD/Data/Potholes/annotated-images/img-1.jpg' # also define this
-    save_path = '/zhome/88/7/117159/Courses/IDLCV_OD/Tea-time/figures/selective_search' #  define this
+    image_path = './Data/Potholes/annotated-images/img-299.jpg' # also define this
+    save_path = './Tea-time/figures/selective_search' #  define this
     image = cv2.imread(image_path)
 
-    boxes = _SelectiveSearch(image, size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10)
+    boxes = _SelectiveSearch(image, size_threshold = 10, _scale=300, _sigma=0.8, _min_size=10)
 
     box_plotter(image,boxes, save_path+'/3.png')
 
