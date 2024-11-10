@@ -3,7 +3,7 @@ import numpy as np
 import glob
 import PIL.Image as Image
 from tqdm import tqdm
-
+import cv2 as cv
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -15,54 +15,74 @@ import matplotlib.pyplot as plt
 import random
 import json
 
-from helpers import parse_xml, get_proposals, _EdgeBox, _SelectiveSearch
+from helpers import parse_xml, get_proposals, _EdgeBox, _SelectiveSearch, cut_patches
 from typing import Union
 
 # Set device
 print("The code will run on GPU." if torch.cuda.is_available() else "The code will run on CPU.")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
+os.chdir("./IDLCV_OD")
+random.seed(6284)
+np.random.seed(6284)
+torch.manual_seed(6284)
 # ######## #
 # Datasets #
 # ######## #
 
 # Define the CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="SS", k1=0.3, k2=0.7):
+    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="SS", k1=0.3, k2=0.7, threshold=0):
         self.prop_pos = prop_pos
         self.patch_transform = patch_transform
         self.k1 = k1
         self.k2 = k2
+        self.pos_proposals = []
+        self.neg_proposals = []
+        self.threshold = threshold
 
-        ids = set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")])
-        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids]
-        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids]
+        ids = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")]), key =lambda x: int(x))
+        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][1:2]
+        print(self.image_paths)
+        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids][1:2]
         self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
 
+        for ip in tqdm(self.image_paths):
+            image = cv.imread(ip)
+            pp, np = get_proposals(image, self.GT, k1=self.k1, k2=self.k2, generator=self.generator, threshold = self.threshold)
+            #pp = [t for t in pp if t[2] * t[3] > self.threshold]
+            #np = [t for t in np if t[2] * t[3] > self.threshold]
+            pp, np = cut_patches(image, pp, np)
+            self.pos_proposals += pp
+            self.neg_proposals += np
+        print(f'# Positive Proposals:{len(self.pos_proposals)}')
+        print(f'# Negative Proposals:{len(self.neg_proposals)}')
+
+
     def __len__(self):
-        return len(self.image_paths)
+        return len(self.pos_proposals) + len(self.neg_proposals)
     
     def __getitem__(self, idx):
-        image = Image.open(self.image_paths[idx]).convert("RGB")
-        
+
         # Get positive class
         target = 1 # 1 is class, 0 is background
         proposal = None
         if random.random() < self.prop_pos:
-            proposal, _ = get_proposals(image, self.GT, num_pos_proposals=1, num_neg_proposals=0, k1=self.k1, k2=self.k2, generator=self.generator)
+            proposal = self.pos_proposals[idx % len(self.pos_proposals)]
         else:
             target = 0
-            _, proposal = get_proposals(image, self.GT, num_pos_proposals=0, num_neg_proposals=1, k1=self.k1, k2=self.k2, generator=self.generator)
+            proposal = self.neg_proposals[idx % len(self.neg_proposals)]
 
         # Apply transformations
         if self.patch_transform:
-            image = self.patch_transform(image)
+            proposal = self.patch_transform(proposal)
 
-        return image, target
+        return proposal, target
 
 
 # Define helper functions
-def unnormalize(tensor, mean, std):
+def unnormalize(tensor):
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
     tensor = tensor.clone()
     for t, m, s in zip(tensor, mean, std):
         t.mul_(s).add_(m)
@@ -107,16 +127,16 @@ patch_transform = transforms.Compose([
     transforms.ToTensor(),
     transforms.ColorJitter(),
     transforms.Normalize(mean=mean, std=std),
-    transforms.Resize(64, 64)
+    transforms.Resize((64, 64))
 ])
 test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.25, search_method="EB", k1=0.3, k2=0.7)
 
 plt.figure(figsize=(20,20))
-for i, (data, target) in enumerate(test_data):
+for i, (data, target) in tqdm(enumerate(test_dataset)):
     if i >= 16: break
     plt.subplot(4,4,i+1)
-    plt.imshow(unnormalize(data))
-    plt.title(['Background', 'Pot Hole'][target])
+    plt.imshow(torch.permute(unnormalize(data), (1,2,0)))
+    plt.title(f"{['Background', 'Pot Hole'][target]}, ")
 plt.savefig(f"./vis/arbitrary/test_dataset.png")
 plt.close()
 

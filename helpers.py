@@ -4,6 +4,7 @@ import cv2 as cv
 import matplotlib.pyplot as plt
 from typing import Tuple, List
 import numpy as np
+from PIL import Image
 
 data_root = "../Data/Potholes"
 def get_split_ids(train=True):
@@ -33,7 +34,7 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
-def _EdgeBox(image, num_boxes=30, model_path="/zhome/51/7/168082/Desktop/s214659/02516_IDLCV/IDLCV_OD/hugo_time/model.yml.gz"):
+def _EdgeBox(image, num_boxes=64, model_path="./hugo_time/model.yml.gz", threshold=256):
     model = model_path
     im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
 
@@ -42,10 +43,11 @@ def _EdgeBox(image, num_boxes=30, model_path="/zhome/51/7/168082/Desktop/s214659
     edges = edge_detection.detectEdges(np.float32(rgb_im) / 255.0)
 
     orimap = edge_detection.computeOrientation(edges)
-    edges = edge_detection.edgesNms(edges, orimap)
+    edges = edge_detection.edgesNms(edges, orimap, 2, 0, 1)
 
-    edge_boxes = cv.ximgproc.createEdgeBoxes()
+    edge_boxes = cv.ximgproc.createEdgeBoxes()#minBoxArea=threshold)
     edge_boxes.setMaxBoxes(num_boxes)
+    edge_boxes.setAlpha(0.8)
     boxes, probs = edge_boxes.getBoundingBoxes(edges, orimap)
 
     #returns x, y, w, h
@@ -62,12 +64,13 @@ def box_plotter(image, boxes, save_path='./figures/000_box_plotter.jpg'):
 
 
 def intersection(x1,y1,w1,h1,x2,y2,w2,h2):
-    top = min(y1+h1, y2+h2)
-    bot = max(y1, y2)
-    left = max(x1, x2)
-    right = min(x1+w1, x2+w2)
-    if top < bot or right < left: return 0
-    return (top - bot + 1) * (right - left + 1)
+    inter = 0
+    for i in range(x1, x1+w1+1):
+        for j in range(y1, y1+h1+1):
+            inter += (i >= x2 and i <= x2+w2 and j >= y2 and j <= y2+h2)
+    return inter
+
+        
 
 def IoU(GT, proposal):
     """
@@ -77,18 +80,18 @@ def IoU(GT, proposal):
     """
     px,py,pw,ph = proposal
     max_iou = 0
-    for name, x,y,w,h in GT:
+
+    for (name, x,y,w,h) in [t for l in GT for t in l]:
         inter = intersection(px,py,pw,ph,x,y,w,h)
-        max_iou = max(max_iou, inter/(pw*ph + w*h - inter))
+        max_iou = max(max_iou, inter/(pw*ph))
 
     return max_iou
 
-def get_proposals(image, GT, num_pos_proposals, num_neg_proposals, k1, k2, generator):
+def get_proposals(image, GT, k1, k2, generator, threshold):
     """
     Parameters:
         image (np.array): the image we're generating proposals on
         GT (List[Tuple[int]]): list of bounding boxes for the ground truth
-        num_pos_proposals, num_neg_proposals (int): number of proposals we want
         k1 (float): if max_i IoU(A, GT_i) < k1, then A is background proposal
         k2 (float): if max_i IoU(A, GT_i) > k2, then A is positive proposal
         generator (Function): EdgeBox method or Selective Search method
@@ -98,36 +101,36 @@ def get_proposals(image, GT, num_pos_proposals, num_neg_proposals, k1, k2, gener
 
     pos_proposals = []
     neg_proposals = []
-    while len(pos_proposals) < num_pos_proposals or len(neg_proposals) < num_neg_proposals:
-        # Generate proposals
-        proposals = generator(image)
-        for proposal in proposals:
-            iou = IoU(GT, proposal)
-            if iou >= k2 and len(pos_proposals) < num_pos_proposals: 
-                pos_proposals.append(proposal)
-            elif iou < k1 and len(neg_proposals) < num_neg_proposals: 
-                neg_proposals.append(proposal)
+    # Generate proposals
+    proposals = generator(image, threshold=threshold)
+    for proposal in proposals:
+        iou = IoU(GT, proposal)
+        if iou >= k2: 
+            pos_proposals.append(proposal)
+        elif iou < k1: 
+            neg_proposals.append(proposal)
 
     return pos_proposals, neg_proposals
 
 
-def cut_patches(image, image_name, pos_proposals, neg_proposals, path):
+def cut_patches(image, pos_proposals, neg_proposals):
+    image_patch_neg = []
+    image_patch_pos = []
     for i in range(len(neg_proposals)):
         x, y, w, h = neg_proposals[i]
-        image_patch = image[y:y+h, x:x+w, :] # Note ordering!!!
-        plt.axis('off')
-        plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
-        plt.savefig(path + f"{image_name}_neg{i}.png", bbox_inches='tight', pad_inches=0)
+        image_patch_neg += [image[y:y+h, x:x+w, :]] # Note ordering!!!
+        #plt.axis('off')
+        #plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
+        #plt.savefig(path + f"{image_name}_neg{i}.png", bbox_inches='tight', pad_inches=0)
 
     for i in range(len(pos_proposals)):
         x, y, w, h = pos_proposals[i]
-        
-        image_patch = image[y:y+h, x:x+w, :] # Note ordering!!!
-        plt.axis('off')
-        plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
-        plt.savefig(path + f"{image_name}_pos{i}.png", bbox_inches='tight', pad_inches=0)
+        image_patch_pos += [image[y:y+h, x:x+w, :]] # Note ordering!!!
+        #plt.axis('off')
+        #plt.imshow(cv.cvtColor(image_patch, cv.COLOR_BGR2RGB))
+        #plt.savefig(path + f"{image_name}_pos{i}.png", bbox_inches='tight', pad_inches=0)
+    return image_patch_pos, image_patch_neg
     
-    print('# Successfully saved image patches')
 
 import cv2
 import selectivesearch
@@ -139,7 +142,7 @@ import os
 
 # Load the image
 
-def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_size=10):
+def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, threshold=256):
 
     # Get selective search object proposals
 
@@ -148,7 +151,7 @@ def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_si
     # SCALE is the sets a scale of observation. Higher number increases the preference of larger boxes (500)
     # Min size, If the rectangle size is reached on min_size, the calculation is stopped. (10)
 
-    img_lbl, regions = selectivesearch.selective_search(image, scale=_scale, sigma=_sigma, min_size=_min_size)
+    img_lbl, regions = selectivesearch.selective_search(image, scale=_scale, sigma=_sigma, min_size=threshold)
 
     # Draw the proposals on the image
     output_image = image.copy()
@@ -183,7 +186,7 @@ def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, _min_si
     #returns list of (x, y, w, h)
     return list(candidates)
 
-testing_selective_search = True
+testing_selective_search = False
 if testing_selective_search:
     image_path = './Data/Potholes/annotated-images/img-299.jpg' # also define this
     save_path = './Tea-time/figures/selective_search' #  define this
