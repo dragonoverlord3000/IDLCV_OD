@@ -34,7 +34,7 @@ def parse_xml(xml_file):
     return filename, boxes
 
 
-def _EdgeBox(image, num_boxes=64, model_path="./hugo_time/model.yml.gz", threshold=256):
+def _EdgeBox(image, num_boxes=1024, model_path="./hugo_time/model.yml.gz"):
     model = model_path
     im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
 
@@ -43,11 +43,10 @@ def _EdgeBox(image, num_boxes=64, model_path="./hugo_time/model.yml.gz", thresho
     edges = edge_detection.detectEdges(np.float32(rgb_im) / 255.0)
 
     orimap = edge_detection.computeOrientation(edges)
-    edges = edge_detection.edgesNms(edges, orimap, 2, 0, 1)
+    edges = edge_detection.edgesNms(edges, orimap)
 
-    edge_boxes = cv.ximgproc.createEdgeBoxes()#minBoxArea=threshold)
+    edge_boxes = cv.ximgproc.createEdgeBoxes()
     edge_boxes.setMaxBoxes(num_boxes)
-    edge_boxes.setAlpha(0.8)
     boxes, probs = edge_boxes.getBoundingBoxes(edges, orimap)
 
     #returns x, y, w, h
@@ -64,13 +63,12 @@ def box_plotter(image, boxes, save_path='./figures/000_box_plotter.jpg'):
 
 
 def intersection(x1,y1,w1,h1,x2,y2,w2,h2):
-    inter = 0
-    for i in range(x1, x1+w1+1):
-        for j in range(y1, y1+h1+1):
-            inter += (i >= x2 and i <= x2+w2 and j >= y2 and j <= y2+h2)
-    return inter
-
-        
+    top = min(y1+h1, y2+h2)
+    bot = max(y1, y2)
+    left = max(x1, x2)
+    right = min(x1+w1, x2+w2)
+    if top < bot or right < left: return 0
+    return (top - bot + 1) * (right - left + 1)
 
 def IoU(GT, proposal):
     """
@@ -80,14 +78,16 @@ def IoU(GT, proposal):
     """
     px,py,pw,ph = proposal
     max_iou = 0
-
-    for (name, x,y,w,h) in [t for l in GT for t in l]:
+    for name, x,y,x2,y2 in [t for l in GT for t in l]:
+        w = x2 - x
+        h = y2 - y
         inter = intersection(px,py,pw,ph,x,y,w,h)
-        max_iou = max(max_iou, inter/(pw*ph))
+        union = pw*ph + w*h - inter
+        max_iou = max(max_iou, inter/union)
 
     return max_iou
 
-def get_proposals(image, GT, k1, k2, generator, threshold):
+def get_proposals(image, GT, k1, k2, generator):
     """
     Parameters:
         image (np.array): the image we're generating proposals on
@@ -102,9 +102,11 @@ def get_proposals(image, GT, k1, k2, generator, threshold):
     pos_proposals = []
     neg_proposals = []
     # Generate proposals
-    proposals = generator(image, threshold=threshold)
+    proposals = generator(image)
+    # print("####### ", len(proposals))
     for proposal in proposals:
         iou = IoU(GT, proposal)
+        # print(proposal, iou)
         if iou >= k2: 
             pos_proposals.append(proposal)
         elif iou < k1: 

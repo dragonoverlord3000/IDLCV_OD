@@ -21,7 +21,7 @@ from typing import Union
 # Set device
 print("The code will run on GPU." if torch.cuda.is_available() else "The code will run on CPU.")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-os.chdir("./IDLCV_OD")
+# os.chdir("./IDLCV_OD")
 random.seed(6284)
 np.random.seed(6284)
 torch.manual_seed(6284)
@@ -31,7 +31,7 @@ torch.manual_seed(6284)
 
 # Define the CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="SS", k1=0.3, k2=0.7, threshold=0):
+    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="SS", k1=0.2, k2=0.6, threshold=0):
         self.prop_pos = prop_pos
         self.patch_transform = patch_transform
         self.k1 = k1
@@ -41,16 +41,15 @@ class CustomDataset(Dataset):
         self.threshold = threshold
 
         ids = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")]), key =lambda x: int(x))
-        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][1:2]
+        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids]
         print(self.image_paths)
-        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids][1:2]
+        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids]
         self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
 
         for ip in tqdm(self.image_paths):
             image = cv.imread(ip)
-            pp, np = get_proposals(image, self.GT, k1=self.k1, k2=self.k2, generator=self.generator, threshold = self.threshold)
-            #pp = [t for t in pp if t[2] * t[3] > self.threshold]
-            #np = [t for t in np if t[2] * t[3] > self.threshold]
+            pp, np = get_proposals(image, self.GT, k1=self.k1, k2=self.k2, generator=self.generator)
+            # Cut into patches
             pp, np = cut_patches(image, pp, np)
             self.pos_proposals += pp
             self.neg_proposals += np
@@ -129,7 +128,7 @@ patch_transform = transforms.Compose([
     transforms.Normalize(mean=mean, std=std),
     transforms.Resize((64, 64))
 ])
-test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.25, search_method="EB", k1=0.3, k2=0.7)
+test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="EB", k1=0.3, k2=0.7)
 
 plt.figure(figsize=(20,20))
 for i, (data, target) in tqdm(enumerate(test_dataset)):

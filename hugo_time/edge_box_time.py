@@ -7,7 +7,7 @@ import os
 
 if __name__ == '__main__':
     model = "model.yml.gz"
-    im = cv.imread("../Data/Potholes/annotated-images/img-299.jpg")
+    im = cv.imread("../Data/Potholes/annotated-images/img-40.jpg")
     cv.imwrite("./EB/image_before.jpg", im) 
 
     edge_detection = cv.ximgproc.createStructuredEdgeDetection(model)
@@ -18,16 +18,15 @@ if __name__ == '__main__':
     edges = edge_detection.edgesNms(edges, orimap)
 
     edge_boxes = cv.ximgproc.createEdgeBoxes()
-    num_boxes = 256
+    num_boxes = 64
     edge_boxes.setMaxBoxes(num_boxes)
     boxes, probs = edge_boxes.getBoundingBoxes(edges, orimap)
-    print(boxes)
     for b in boxes:
         x, y, w, h = b
         cv.rectangle(im, (x, y), (x+w, y+h), (0, 255, 0), 1, cv.LINE_AA)
     print(os.getcwd())
-    cv.imwrite("./EB/edges_output.jpg", edges * 255) 
-    cv.imwrite(f"./EB/edgeboxes_output_{num_boxes}.jpg", im) 
+    cv.imwrite("./EB/edges_output_40.jpg", edges * 255) 
+    cv.imwrite(f"./EB/edgeboxes_output_{num_boxes}_40.jpg", im) 
 
     cv.waitKey(0)
     cv.destroyAllWindows()
