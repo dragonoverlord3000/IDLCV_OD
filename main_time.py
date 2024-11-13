@@ -14,13 +14,24 @@ import torchvision.transforms as transforms
 import matplotlib.pyplot as plt
 import random
 import json
+import wandb
+wandb.login(key='4aaf96e30165bfe476963bc860d96770512c8060')
 
 from helpers import parse_xml, get_proposals, _EdgeBox, _SelectiveSearch, cut_patches
 from typing import Union
+from sklearn.metrics import accuracy_score, recall_score, confusion_matrix
+
 
 # Set device
 print("The code will run on GPU." if torch.cuda.is_available() else "The code will run on CPU.")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+try:
+    os.chdir("./IDLCV_OD")
+except:
+    try:
+        os.chdir("./Courses/IDLCV_OD")
+    except:
+        ...
 # os.chdir("./IDLCV_OD")
 random.seed(6284)
 np.random.seed(6284)
@@ -104,7 +115,7 @@ def build_datasets(config):
         transforms.ToTensor(),
         transforms.ColorJitter(),
         transforms.Normalize(mean=mean, std=std),
-        transforms.Resize(config.image_size, config.image_size)
+        transforms.Resize((config.image_size, config.image_size))
     ])
 
     # The datasets
@@ -118,27 +129,29 @@ def build_datasets(config):
 
     return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
-# ######### #
-# Visualize #
-# ######### #
-mean = [0.485, 0.456, 0.406]
-std = [0.229, 0.224, 0.225]
-patch_transform = transforms.Compose([
-    transforms.ToTensor(),
-    transforms.ColorJitter(),
-    transforms.Normalize(mean=mean, std=std),
-    transforms.Resize((64, 64))
-])
-test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="SS", k1=0.3, k2=0.7)
 
-plt.figure(figsize=(20,20))
-for i, (data, target) in tqdm(enumerate(test_dataset)):
-    if i >= 16: break
-    plt.subplot(4,4,i+1)
-    plt.imshow(torch.permute(unnormalize(data), (1,2,0)))
-    plt.title(f"{['Background', 'Pot Hole'][target]}, ")
-plt.savefig(f"./vis/arbitrary/test_dataset.png")
-plt.close()
+if False:
+    # ######### #
+    # Visualize #
+    # ######### #
+    mean = [0.485, 0.456, 0.406]
+    std = [0.229, 0.224, 0.225]
+    patch_transform = transforms.Compose([
+        transforms.ToTensor(),
+        transforms.ColorJitter(),
+        transforms.Normalize(mean=mean, std=std),
+        transforms.Resize((64, 64))
+    ])
+    test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="SS", k1=0.3, k2=0.7)
+
+    plt.figure(figsize=(20,20))
+    for i, (data, target) in tqdm(enumerate(test_dataset)):
+        if i >= 16: break
+        plt.subplot(4,4,i+1)
+        plt.imshow(torch.permute(unnormalize(data), (1,2,0)))
+        plt.title(f"{['Background', 'Pot Hole'][target]}, ")
+    plt.savefig(f"./vis/arbitrary/test_dataset.png")
+    plt.close()
 
 # Define the build_optimizer function
 def build_optimizer(model, optimizer_name, learning_rate):
@@ -155,14 +168,23 @@ def bce_loss(y_pred, y_real):
     return F.binary_cross_entropy_with_logits(y_pred, y_real)
 
 # Define the compute_metrics function
+
 def compute_metrics(preds, targets):
-    acc = 0
-    sensitivity = 0
-    specificity = 0
 
-    # TODO: calculate metrics
-
+    preds[preds<0.5] = 0 
+    preds[preds>0.5] = 1
+    # Calculate accuracy
+    acc = accuracy_score(targets, preds)
+    
+    # Calculate sensitivity (recall)
+    sensitivity = recall_score(targets, preds)
+    
+    # Calculate specificity using the confusion matrix
+    tn, fp, fn, tp = confusion_matrix(targets, preds).ravel()
+    specificity = tn / (tn + fp) if (tn + fp) > 0 else 0
+    
     return acc, sensitivity, specificity
+
 
 
 # Update the train function
@@ -190,7 +212,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
 
         # Training phase
         for data, target in train_loader:
-            data, target = data.to(device), target.to(device)
+            data, target = data.to(device), target.to(device).float().unsqueeze(1)
             optimizer.zero_grad()
             output = model(data)
             loss = criterion(output, target)
@@ -202,7 +224,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
             train_targets.append(target.long().cpu())
 
         # Compute training metrics
-        train_dice, train_iou, train_acc, train_sensitivity, train_specificity = compute_metrics(train_preds, train_targets)
+        train_acc, train_sensitivity, train_specificity = compute_metrics(torch.concat(train_preds).detach().numpy(), torch.concat(train_targets).numpy())
 
         # Validation phase
         val_loss = []
@@ -212,7 +234,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
 
         with torch.no_grad():
             for data, target in val_loader:
-                data, target = data.to(device), target.to(device)
+                data, target = data.to(device), target.to(device).float().unsqueeze(1)
                 output = model(data)
                 loss = criterion(output, target)
 
@@ -221,7 +243,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
                 val_targets.append(target.long().cpu())
 
         # Compute validation metrics
-        val_dice, val_iou, val_acc, val_sensitivity, val_specificity = compute_metrics(val_preds, val_targets)
+        val_acc, val_sensitivity, val_specificity = compute_metrics(torch.cat(val_preds).numpy(), torch.cat(val_targets).numpy())
 
         # Test phase
         test_preds = []
@@ -230,14 +252,14 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
 
         with torch.no_grad():
             for data, target in test_loader:
-                data, target = data.to(device), target.to(device)
+                data, target = data.to(device), target.to(device).float().unsqueeze(1)
                 output = model(data)
 
                 test_preds.append(torch.sigmoid(output).cpu())
                 test_targets.append(target.long().cpu())
 
         # Compute validation metrics
-        test_acc, test_sensitivity, test_specificity = compute_metrics(test_preds, test_targets)
+        test_acc, test_sensitivity, test_specificity = compute_metrics(torch.cat(test_preds).numpy(), torch.cat(test_targets).numpy())
 
         # Record metrics
         out_dict['train_loss'].append(np.mean(train_loss))
@@ -278,3 +300,116 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
               f"Test Acc: {test_acc*100:.2f}%")
 
 
+sweep_config = {
+    'method' : 'bayes'#'random', #'bayes' "grid"
+}
+
+metric = {
+    'name': 'loss',
+    'goal': 'minimize'
+  }
+
+parameters_dict = {
+    'prop_pos': {
+        'values': [0.25, 0.5] 
+    },
+    'search_method': {
+        'values': ['EB']#,'SS'] 
+    },
+    'k1': {
+        'values': [0.3,0.2]
+    },
+    'k2': {
+        'values': [0.7,0.6]
+    },
+    'dropout' : {
+        'values' : [0.2, 0.5]
+    },
+    'epochs' : {
+        'value': 300
+    },
+    'learning_rate' : {
+        "values": [0.0001, 0.001, 0.01]
+    },
+    'batch_size': {
+        "values": [16, 32]
+    },
+    'image_size':{
+        'value': 128
+    },
+    "num_layers": {
+        "values": list(range(4, 7))
+    }
+}
+sweep_config['metric'] = metric
+sweep_config['parameters'] = parameters_dict
+
+sweep_id = wandb.sweep(sweep_config, project='Object_Detection')
+
+class Base_Network(nn.Module):
+    def __init__(self, dropout, num_layers, feature_size=128, base_channel_sz = 8):
+        super(Base_Network, self).__init__()
+
+        self.beginning = nn.Sequential(
+            nn.Conv2d(in_channels=3, out_channels=base_channel_sz, kernel_size=7, stride=1, padding=3),
+            nn.BatchNorm2d(base_channel_sz),
+            nn.ReLU(),
+            nn.Dropout(dropout), 
+            nn.MaxPool2d(kernel_size=2, stride=2)
+
+        )
+        feature_size //= 2 # Convolution -> Padding -> Pooling
+
+        layers = []
+        for i in range(num_layers):
+          layers.append(nn.Conv2d(in_channels=base_channel_sz*(i+1), out_channels=base_channel_sz*(i+2), kernel_size=3, padding=1))
+          layers.append(nn.BatchNorm2d(base_channel_sz*(i+2)))
+          layers.append(nn.ReLU())
+          layers.append(nn.Dropout(dropout))
+          
+          layers.append(nn.MaxPool2d(kernel_size=2, stride=2))
+          feature_size //= 2 # Convolution -> Padding -> Pooling
+
+        self.convolutional = nn.Sequential(*layers)
+        self.fully_connected = nn.Sequential(
+            nn.Linear(in_features= base_channel_sz * (num_layers + 1) * feature_size * feature_size, out_features=512),
+            nn.ReLU(),
+            nn.Dropout(dropout), # added dropout to reduce overfitting
+
+            nn.Linear(512, 1),
+            nn.Sigmoid()
+        )
+
+    def forward(self, x):
+        x = self.beginning(x)
+        x = self.convolutional(x)
+        #reshape x so it becomes flat, except for the first dimension (which is the minibatch)
+        x = x.view(x.size(0), -1)
+
+        x = self.fully_connected(x)
+        return x
+    
+def run_wandb(config=None):
+    # Initialize a new wandb run
+    with wandb.init(config=config):
+        config = wandb.config
+
+        # Include the run id so that we can identify the saved models
+        config = wandb.config
+        run_id = wandb.run.id 
+        config.run_id = run_id
+        wandb.run.name = f"Run {run_id}"
+
+        train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset = build_datasets(config)
+        model = Base_Network(config.dropout, config.num_layers) #build_network(config.fc_layer_size, config.dropout)
+        model.to(device)
+        print(model)
+
+        optimizer = build_optimizer(model, config.learning_rate)
+
+        # Generate a random id for this run and this model
+        # train(model, optimizer, train_loader, val_loader, train_dataset, val_dataset, config.epochs, run_id)
+
+        train(model, optimizer, train_loader, val_loader, test_loader, criterion=bce_loss, num_epochs= config.epochs, run_id=run_id)
+
+wandb.agent(sweep_id, run_wandb)
