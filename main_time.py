@@ -123,9 +123,9 @@ def build_datasets(config):
     val_dataset = CustomDataset(split='validation', patch_transform=patch_transform, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
     test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
 
-    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=SHUFFLE, num_workers=NUM_WORKERS, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
-    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=NUM_WORKERS, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
-    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=NUM_WORKERS, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
+    train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=SHUFFLE, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=NUM_WORKERS)
+    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=NUM_WORKERS)
 
     return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
