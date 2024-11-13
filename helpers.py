@@ -35,6 +35,7 @@ def parse_xml(xml_file):
 
 
 def _EdgeBox(image, num_boxes=1024, model_path="./hugo_time/model.yml.gz"):
+    """EdgeBox"""
     model = model_path
     im = image # cv.imread("../Data/Potholes/annotated-images/img-322.jpg")
 
@@ -145,6 +146,7 @@ import os
 # Load the image
 
 def _SelectiveSearch(image,size_threshold = 100, _scale=500, _sigma=0.8, threshold=256):
+    """Selective Search"""
 
     # Get selective search object proposals
 

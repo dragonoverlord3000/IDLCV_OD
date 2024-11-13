@@ -31,7 +31,7 @@ torch.manual_seed(6284)
 
 # Define the CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="SS", k1=0.2, k2=0.6, threshold=0):
+    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="EB", k1=0.2, k2=0.6, threshold=0):
         self.prop_pos = prop_pos
         self.patch_transform = patch_transform
         self.k1 = k1
@@ -45,6 +45,7 @@ class CustomDataset(Dataset):
         print(self.image_paths)
         self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids]
         self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
+        print(self.generator)
 
         for ip in tqdm(self.image_paths):
             image = cv.imread(ip)
@@ -128,7 +129,7 @@ patch_transform = transforms.Compose([
     transforms.Normalize(mean=mean, std=std),
     transforms.Resize((64, 64))
 ])
-test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="EB", k1=0.3, k2=0.7)
+test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="SS", k1=0.3, k2=0.7)
 
 plt.figure(figsize=(20,20))
 for i, (data, target) in tqdm(enumerate(test_dataset)):
