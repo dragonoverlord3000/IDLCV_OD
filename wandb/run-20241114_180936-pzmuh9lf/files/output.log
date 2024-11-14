@@ -1,0 +1,67 @@
+['./Data/Potholes/train/img-1.jpg', './Data/Potholes/train/img-4.jpg', './Data/Potholes/train/img-5.jpg', './Data/Potholes/train/img-7.jpg', './Data/Potholes/train/img-8.jpg', './Data/Potholes/train/img-12.jpg', './Data/Potholes/train/img-14.jpg', './Data/Potholes/train/img-15.jpg', './Data/Potholes/train/img-16.jpg', './Data/Potholes/train/img-18.jpg']
+<function _EdgeBox at 0x7f49da3fe5e0>
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 10/10 [00:10<00:00,  1.06s/it]
+# Positive Proposals:21
+# Negative Proposals:8030
+['./Data/Potholes/validation/img-2.jpg', './Data/Potholes/validation/img-3.jpg', './Data/Potholes/validation/img-13.jpg', './Data/Potholes/validation/img-17.jpg', './Data/Potholes/validation/img-30.jpg', './Data/Potholes/validation/img-32.jpg', './Data/Potholes/validation/img-37.jpg', './Data/Potholes/validation/img-39.jpg', './Data/Potholes/validation/img-41.jpg', './Data/Potholes/validation/img-42.jpg']
+<function _EdgeBox at 0x7f49da3fe5e0>
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 10/10 [00:10<00:00,  1.04s/it]
+# Positive Proposals:19
+# Negative Proposals:6559
+['./Data/Potholes/test/img-6.jpg', './Data/Potholes/test/img-9.jpg', './Data/Potholes/test/img-10.jpg', './Data/Potholes/test/img-11.jpg', './Data/Potholes/test/img-22.jpg', './Data/Potholes/test/img-25.jpg', './Data/Potholes/test/img-26.jpg', './Data/Potholes/test/img-28.jpg', './Data/Potholes/test/img-35.jpg', './Data/Potholes/test/img-40.jpg']
+<function _EdgeBox at 0x7f49da3fe5e0>
+100%|██████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████████| 10/10 [00:09<00:00,  1.03it/s]
+# Positive Proposals:32
+# Negative Proposals:5176
+Base_Network(
+  (beginning): Sequential(
+    (0): Conv2d(3, 8, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3))
+    (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (convolutional): Sequential(
+    (0): Conv2d(8, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (5): Conv2d(16, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (6): BatchNorm2d(24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout(p=0.5, inplace=False)
+    (9): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (10): Conv2d(24, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Dropout(p=0.5, inplace=False)
+    (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (15): Conv2d(32, 40, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (16): BatchNorm2d(40, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (17): ReLU()
+    (18): Dropout(p=0.5, inplace=False)
+    (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fully_connected): Sequential(
+    (0): Linear(in_features=640, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=512, out_features=1, bias=True)
+    (4): Sigmoid()
+  )
+)
+Traceback (most recent call last):
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 408, in run_wandb
+    train(model, optimizer, train_loader, val_loader, test_loader, criterion=bce_loss, num_epochs= config.epochs, run_id=run_id)
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 222, in train
+    train_acc, train_sensitivity, train_specificity = compute_metrics(torch.concat(train_preds).detach().numpy(), torch.concat(train_targets).numpy())
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 172, in compute_metrics
+    acc = accuracy_score(targets, preds)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/sklearn/utils/_param_validation.py", line 213, in wrapper
+    return func(*args, **kwargs)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/sklearn/metrics/_classification.py", line 231, in accuracy_score
+    y_type, y_true, y_pred = _check_targets(y_true, y_pred)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/sklearn/metrics/_classification.py", line 112, in _check_targets
+    raise ValueError(
+ValueError: Classification metrics can't handle a mix of binary and continuous targets

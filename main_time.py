@@ -42,19 +42,18 @@ torch.manual_seed(6284)
 
 # Define the CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="EB", k1=0.2, k2=0.6, threshold=0):
+    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="EB", k1=0.2, k2=0.6):
         self.prop_pos = prop_pos
         self.patch_transform = patch_transform
         self.k1 = k1
         self.k2 = k2
         self.pos_proposals = []
         self.neg_proposals = []
-        self.threshold = threshold
 
         ids = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")]), key =lambda x: int(x))
-        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][:2]
+        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][:10]
         print(self.image_paths)
-        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids]
+        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids][:10]
         self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
         print(self.generator)
 
@@ -167,8 +166,13 @@ def bce_loss(y_pred, y_real):
 
 def compute_metrics(preds, targets):
 
-    preds[preds<0.5] = 0 
-    preds[preds>=0.5] = 1
+    preds[preds < 0.5] = 0 
+    preds[preds >= 0.5] = 1
+
+    # Convert to integer type
+    preds = preds.astype(int)
+    targets = targets.astype(int)
+
     # Calculate accuracy
     acc = accuracy_score(targets, preds)
     

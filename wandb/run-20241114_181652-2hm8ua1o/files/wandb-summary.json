@@ -1,0 +1,1 @@
+{"run_id":"2hm8ua1o","val_sensitivity":1,"val_acc":0.2557046979865772,"train_acc":0.6829139072847682,"test_specificity":0,"train_sensitivity":0.16132478632478633,"_timestamp":1.731605109546518e+09,"test_acc":0.25558715969118245,"epoch":4,"_runtime":496.930128638,"test_sensitivity":1,"val_specificity":0,"_wandb":{"runtime":556},"_step":4,"train_specificity":0.8548784783374428}

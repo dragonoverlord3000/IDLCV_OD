@@ -1,0 +1,32 @@
+{
+  "os": "Linux-6.1.112-1.el9.elrepo.x86_64-x86_64-with-glibc2.34",
+  "python": "3.9.18",
+  "startedAt": "2024-11-14T17:11:15.485984Z",
+  "program": "/work3/s214734/IDLCV_OD/main_time.py",
+  "codePath": "main_time.py",
+  "git": {
+    "remote": "https://github.com/dragonoverlord3000/IDLCV_OD",
+    "commit": "211a0706cecb63b530097d1b3dce42ee5867cbd2"
+  },
+  "email": "s164248@student.dtu.dk",
+  "root": "/work3/s214734/IDLCV_OD",
+  "host": "gbarlogin1",
+  "username": "s214734",
+  "executable": "/usr/bin/python",
+  "codePathLocal": "main_time.py",
+  "cpu_count": 64,
+  "cpu_count_logical": 64,
+  "disk": {
+    "/": {
+      "total": "76817485824",
+      "used": "6614712320"
+    }
+  },
+  "memory": {
+    "total": "1081357918208"
+  },
+  "cpu": {
+    "count": 64,
+    "countLogical": 64
+  }
+}
