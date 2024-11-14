@@ -1,0 +1,62 @@
+# Positive Proposals:27
+# Negative Proposals:469
+# Positive Proposals:24
+# Negative Proposals:349
+# Positive Proposals:22
+# Negative Proposals:426
+Base_Network(
+  (beginning): Sequential(
+    (0): Conv2d(3, 8, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3))
+    (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (convolutional): Sequential(
+    (0): Conv2d(8, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (5): Conv2d(16, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (6): BatchNorm2d(24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout(p=0.5, inplace=False)
+    (9): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (10): Conv2d(24, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Dropout(p=0.5, inplace=False)
+    (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (15): Conv2d(32, 40, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (16): BatchNorm2d(40, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (17): ReLU()
+    (18): Dropout(p=0.5, inplace=False)
+    (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (20): Conv2d(40, 48, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (21): BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (22): ReLU()
+    (23): Dropout(p=0.5, inplace=False)
+    (24): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (25): Conv2d(48, 56, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (26): BatchNorm2d(56, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (27): ReLU()
+    (28): Dropout(p=0.5, inplace=False)
+    (29): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fully_connected): Sequential(
+    (0): Linear(in_features=56, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=512, out_features=1, bias=True)
+    (4): Sigmoid()
+  )
+)
+Traceback (most recent call last):
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 488, in run_wandb
+    train(model, optimizer, train_loader, val_loader, test_loader, criterion=bce_loss, num_epochs= config.epochs, run_id=run_id)
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 332, in train
+    visualizer(test_loader, model, 16, f"{epoch}-{run_id}-test-vis")
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 229, in visualizer
+    plt.imshow(transforms.ToPILImage()(unnormalize(image.squeeze(0), mean, std)))
+TypeError: unnormalize() takes 1 positional argument but 3 were given

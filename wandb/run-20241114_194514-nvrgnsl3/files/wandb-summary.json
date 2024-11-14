@@ -1,0 +1,1 @@
+{"val_sensitivity":1,"train_acc":0.21774193548387097,"val_specificity":0,"val_acc":0.24932975871313673,"train_specificity":0,"run_id":"nvrgnsl3","test_sensitivity":1,"_step":6,"_timestamp":1.7316099438019724e+09,"_wandb":{"runtime":34},"test_specificity":0,"_runtime":29.746649183,"epoch":6,"train_sensitivity":1,"test_acc":0.25669642857142855}

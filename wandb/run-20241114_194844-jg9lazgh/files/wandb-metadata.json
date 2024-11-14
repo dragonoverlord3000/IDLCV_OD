@@ -1,0 +1,49 @@
+{
+  "os": "Linux-6.1.112-1.el9.elrepo.x86_64-x86_64-with-glibc2.34",
+  "python": "3.9.18",
+  "startedAt": "2024-11-14T18:48:44.748886Z",
+  "program": "/work3/s214734/IDLCV_OD/main_time.py",
+  "codePath": "main_time.py",
+  "git": {
+    "remote": "https://github.com/dragonoverlord3000/IDLCV_OD",
+    "commit": "c9962d6bcef19f06d2e3d1eabbae5c8aedca36c6"
+  },
+  "email": "s164248@student.dtu.dk",
+  "root": "/work3/s214734/IDLCV_OD",
+  "host": "n-62-20-1",
+  "username": "s214734",
+  "executable": "/usr/bin/python",
+  "codePathLocal": "main_time.py",
+  "cpu_count": 24,
+  "cpu_count_logical": 24,
+  "gpu": "[Tesla V100-PCIE-16GB, Tesla V100-PCIE-16GB]",
+  "gpu_count": 2,
+  "disk": {
+    "/": {
+      "total": "76817485824",
+      "used": "6113927168"
+    }
+  },
+  "memory": {
+    "total": "201904611328"
+  },
+  "cpu": {
+    "count": 24,
+    "countLogical": 24
+  },
+  "gpu_nvidia": [
+    {
+      "name": "Tesla V100-PCIE-16GB",
+      "memoryTotal": "17179869184",
+      "cudaCores": 5120,
+      "architecture": "Volta"
+    },
+    {
+      "name": "Tesla V100-PCIE-16GB",
+      "memoryTotal": "17179869184",
+      "cudaCores": 5120,
+      "architecture": "Volta"
+    }
+  ],
+  "cudaVersion": "12.6"
+}

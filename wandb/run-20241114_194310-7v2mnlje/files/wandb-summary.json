@@ -1,0 +1,1 @@
+{"_runtime":29.649637222,"train_sensitivity":1,"test_sensitivity":1,"val_specificity":0,"val_sensitivity":1,"test_acc":0.47767857142857145,"train_specificity":0,"epoch":6,"train_acc":0.4959677419354839,"val_acc":0.4718498659517426,"test_specificity":0,"_step":6,"_timestamp":1.7316098204788756e+09,"_wandb":{"runtime":31},"run_id":"7v2mnlje"}

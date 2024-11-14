@@ -1,0 +1,1 @@
+{"_wandb":{"runtime":182},"test_specificity":0,"train_specificity":0,"epoch":43,"test_sensitivity":1,"_step":43,"test_acc":0.24107142857142858,"train_acc":0.23588709677419356,"_timestamp":1.7316097102163923e+09,"_runtime":179.496490396,"val_specificity":0,"val_sensitivity":1,"run_id":"w4jsit84","train_sensitivity":1,"val_acc":0.27882037533512066}

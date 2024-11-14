@@ -68,7 +68,7 @@ neg_proposals_train_positions = []
 for ip in tqdm(image_paths_train):
     image = cv.imread(ip)
     pp, _np = get_proposals(image, GT_train, k1=k1, k2=k2, generator=generator)
-    neg_proposals_train_positions += pp
+    pos_proposals_train_positions += pp
     neg_proposals_train_positions += _np
     # Cut into patches
     pp, _np = cut_patches(image, pp, _np)
@@ -85,7 +85,7 @@ neg_proposals_test_positions = []
 for ip in tqdm(image_paths_test):
     image = cv.imread(ip)
     pp, _np = get_proposals(image, GT_test, k1=k1, k2=k2, generator=generator)
-    neg_proposals_test_positions += pp
+    pos_proposals_test_positions += pp
     neg_proposals_test_positions += _np
     # Cut into patches
     pp, _np = cut_patches(image, pp, _np)
@@ -102,7 +102,7 @@ neg_proposals_validation_positions = []
 for ip in tqdm(image_paths_validation):
     image = cv.imread(ip)
     pp, _np = get_proposals(image, GT_validation, k1=k1, k2=k2, generator=generator)
-    neg_proposals_validation_positions += pp
+    pos_proposals_validation_positions += pp
     neg_proposals_validation_positions += _np
     # Cut into patches
     pp, _np = cut_patches(image, pp, _np)
@@ -160,12 +160,13 @@ def unnormalize(tensor):
 SHUFFLE = True
 NUM_WORKERS = 1
 
+mean = [0.485, 0.456, 0.406]
+std = [0.229, 0.224, 0.225]
+
 # Update build_datasets function
 def build_datasets(config):
 
     # The transform
-    mean = [0.485, 0.456, 0.406]
-    std = [0.229, 0.224, 0.225]
     patch_transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.ColorJitter(),
@@ -179,8 +180,8 @@ def build_datasets(config):
     test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=config.prop_pos)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=SHUFFLE, num_workers=NUM_WORKERS)
-    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, num_workers=NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=config.batch_size, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=NUM_WORKERS)
+    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=NUM_WORKERS)
 
     return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
@@ -208,6 +209,32 @@ if False:
     plt.savefig(f"./vis/arbitrary/test_dataset.png")
     plt.close()
 
+
+# Plot images, predictions and their masks - to show dataset
+def visualizer(dataloader, model, num_samples=16, title="Final_Validation_Visualization", run_id="vis"):
+    """Visualize predictions on the validation set and save them with the given run_id."""
+    model.eval()
+    plt.figure(figsize=(10, 20))
+    os.makedirs(f"./vis/vis/{run_id}", exist_ok=True)
+
+    with torch.no_grad():
+        for i, (image, target, _) in enumerate(dataloader):
+            if i >= num_samples: break
+
+            image = image.to(device)
+            pred = torch.sigmoid(model(image)).cpu().squeeze(0)[0].item()
+
+            # Plot the image
+            plt.subplot(4, 4, i + 1)
+            plt.imshow(transforms.ToPILImage()(unnormalize(image.squeeze(0))))
+            plt.title(f"Target: {target[0].item()}, Pred: {round(pred, 3)}")
+            plt.axis("off")
+
+    plt.tight_layout()
+    plt.savefig(f"./vis/vis/{run_id}/{title}.png")
+    plt.close()
+
+    
 # Define the build_optimizer function
 def build_optimizer(model, learning_rate):
     optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
@@ -302,6 +329,8 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
         val_acc, val_sensitivity, val_specificity = compute_metrics(torch.cat(val_preds).numpy(), torch.cat(val_targets).numpy())
 
         # Test phase
+        visualizer(test_loader, model, 16, f"{epoch}-test-vis")
+
         test_preds = []
         test_targets = []
         model.eval()
@@ -424,7 +453,6 @@ class Base_Network(nn.Module):
             nn.Dropout(dropout), # added dropout to reduce overfitting
 
             nn.Linear(512, 1),
-            nn.Sigmoid()
         )
 
     def forward(self, x):
@@ -442,7 +470,6 @@ def run_wandb(config=None):
         config = wandb.config
 
         # Include the run id so that we can identify the saved models
-        config = wandb.config
         run_id = wandb.run.id 
         config.run_id = run_id
         wandb.run.name = f"Run {run_id}"
