@@ -59,8 +59,8 @@ ids_test = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{ro
 ids_validation = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/validation")]), key =lambda x: int(x))
 
 # Train
-image_paths_train = [f"{root}/train/img-{id}.jpg" for id in ids_train][:10]
-GT_train = [parse_xml(f"{root}/train/img-{id}.xml")[1] for id in ids_train][:10]
+image_paths_train = [f"{root}/train/img-{id}.jpg" for id in ids_train]
+GT_train = [parse_xml(f"{root}/train/img-{id}.xml")[1] for id in ids_train]
 pos_proposals_train = []
 pos_proposals_train_positions = []
 neg_proposals_train = []
@@ -76,8 +76,8 @@ for ip in tqdm(image_paths_train):
     neg_proposals_train += _np
 
 # Test
-image_paths_test = [f"{root}/test/img-{id}.jpg" for id in ids_test][:10]
-GT_test = [parse_xml(f"{root}/test/img-{id}.xml")[1] for id in ids_test][:10]
+image_paths_test = [f"{root}/test/img-{id}.jpg" for id in ids_test]
+GT_test = [parse_xml(f"{root}/test/img-{id}.xml")[1] for id in ids_test]
 pos_proposals_test = []
 pos_proposals_test_positions = []
 neg_proposals_test = []
@@ -93,8 +93,8 @@ for ip in tqdm(image_paths_test):
     neg_proposals_test += _np
 
 # Validation
-image_paths_validation = [f"{root}/validation/img-{id}.jpg" for id in ids_validation][:10]
-GT_validation = [parse_xml(f"{root}/validation/img-{id}.xml")[1] for id in ids_validation][:10]
+image_paths_validation = [f"{root}/validation/img-{id}.jpg" for id in ids_validation]
+GT_validation = [parse_xml(f"{root}/validation/img-{id}.xml")[1] for id in ids_validation]
 pos_proposals_validation = []
 pos_proposals_validation_positions = []
 neg_proposals_validation = []
@@ -140,7 +140,7 @@ class CustomDataset(Dataset):
 
         # Apply transformations
         if self.patch_transform:
-            proposal = self.patch_transform(proposal)
+            proposal = self.patch_transform(Image.fromarray(proposal))
 
         return proposal, target, index ####             TEITUR HERE IS THE INDEX TO GET WHERE THE PATCH IS - USE: (TARGET + SPLIT TYPE + INDEX) TO GET E.G neg_proposals_validation_positions[index], see code above custom dataset class
 
@@ -168,10 +168,10 @@ def build_datasets(config):
 
     # The transform
     patch_transform = transforms.Compose([
-        transforms.ToTensor(),
+        transforms.Resize((config.image_size, config.image_size)),
         transforms.ColorJitter(),
+        transforms.ToTensor(),
         transforms.Normalize(mean=mean, std=std),
-        transforms.Resize((config.image_size, config.image_size))
     ])
 
     # The datasets
@@ -186,30 +186,9 @@ def build_datasets(config):
     return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
 
-if False:
-    # ######### #
-    # Visualize #
-    # ######### #
-    mean = [0.485, 0.456, 0.406]
-    std = [0.229, 0.224, 0.225]
-    patch_transform = transforms.Compose([
-        transforms.ToTensor(),
-        transforms.ColorJitter(),
-        transforms.Normalize(mean=mean, std=std),
-        transforms.Resize((64, 64))
-    ])
-    test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=0.5, search_method="SS", k1=0.3, k2=0.7)
-
-    plt.figure(figsize=(20,20))
-    for i, (data, target) in tqdm(enumerate(test_dataset)):
-        if i >= 16: break
-        plt.subplot(4,4,i+1)
-        plt.imshow(torch.permute(unnormalize(data), (1,2,0)))
-        plt.title(f"{['Background', 'Pot Hole'][target]}, ")
-    plt.savefig(f"./vis/arbitrary/test_dataset.png")
-    plt.close()
-
-
+# ######### #
+# Visualize #
+# ######### #
 # Plot images, predictions and their masks - to show dataset
 def visualizer(dataloader, model, num_samples=16, title="Final_Validation_Visualization", run_id="vis"):
     """Visualize predictions on the validation set and save them with the given run_id."""
@@ -329,7 +308,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
         val_acc, val_sensitivity, val_specificity = compute_metrics(torch.cat(val_preds).numpy(), torch.cat(val_targets).numpy())
 
         # Test phase
-        visualizer(test_loader, model, 16, f"{epoch}-test-vis")
+        visualizer(test_loader, model, 16, f"{epoch}-test-vis", run_id)
 
         test_preds = []
         test_targets = []

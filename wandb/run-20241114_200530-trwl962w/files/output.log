@@ -1,0 +1,93 @@
+# Positive Proposals:27
+# Negative Proposals:469
+# Positive Proposals:24
+# Negative Proposals:349
+# Positive Proposals:22
+# Negative Proposals:426
+Base_Network(
+  (beginning): Sequential(
+    (0): Conv2d(3, 8, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3))
+    (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (convolutional): Sequential(
+    (0): Conv2d(8, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (5): Conv2d(16, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (6): BatchNorm2d(24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout(p=0.5, inplace=False)
+    (9): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (10): Conv2d(24, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Dropout(p=0.5, inplace=False)
+    (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (15): Conv2d(32, 40, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (16): BatchNorm2d(40, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (17): ReLU()
+    (18): Dropout(p=0.5, inplace=False)
+    (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (20): Conv2d(40, 48, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (21): BatchNorm2d(48, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (22): ReLU()
+    (23): Dropout(p=0.5, inplace=False)
+    (24): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fully_connected): Sequential(
+    (0): Linear(in_features=192, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=512, out_features=1, bias=True)
+  )
+)
+Epoch 1/300: Train Loss: 0.691, Val Loss: 0.702, Train Acc: 54.23%, Val Acc: 45.58%, Test Acc: 48.44%
+Epoch 2/300: Train Loss: 0.606, Val Loss: 0.731, Train Acc: 70.77%, Val Acc: 46.92%, Test Acc: 53.12%
+Epoch 3/300: Train Loss: 0.571, Val Loss: 0.739, Train Acc: 71.57%, Val Acc: 48.26%, Test Acc: 49.55%
+Epoch 4/300: Train Loss: 0.525, Val Loss: 0.767, Train Acc: 75.81%, Val Acc: 47.45%, Test Acc: 52.68%
+Epoch 5/300: Train Loss: 0.477, Val Loss: 0.790, Train Acc: 77.22%, Val Acc: 47.99%, Test Acc: 49.78%
+Epoch 6/300: Train Loss: 0.469, Val Loss: 0.793, Train Acc: 79.03%, Val Acc: 50.13%, Test Acc: 48.44%
+Epoch 7/300: Train Loss: 0.384, Val Loss: 0.767, Train Acc: 82.46%, Val Acc: 52.82%, Test Acc: 52.23%
+Epoch 8/300: Train Loss: 0.343, Val Loss: 0.844, Train Acc: 86.69%, Val Acc: 47.72%, Test Acc: 51.12%
+Epoch 9/300: Train Loss: 0.329, Val Loss: 0.867, Train Acc: 84.68%, Val Acc: 47.45%, Test Acc: 50.45%
+Epoch 10/300: Train Loss: 0.247, Val Loss: 0.853, Train Acc: 90.32%, Val Acc: 50.40%, Test Acc: 49.78%
+Epoch 11/300: Train Loss: 0.238, Val Loss: 0.944, Train Acc: 90.93%, Val Acc: 47.18%, Test Acc: 49.33%
+Epoch 12/300: Train Loss: 0.192, Val Loss: 0.950, Train Acc: 93.95%, Val Acc: 47.18%, Test Acc: 51.56%
+Epoch 13/300: Train Loss: 0.182, Val Loss: 0.902, Train Acc: 93.35%, Val Acc: 50.94%, Test Acc: 46.43%
+Epoch 14/300: Train Loss: 0.166, Val Loss: 0.963, Train Acc: 92.94%, Val Acc: 46.65%, Test Acc: 50.45%
+Epoch 15/300: Train Loss: 0.170, Val Loss: 0.923, Train Acc: 92.94%, Val Acc: 48.53%, Test Acc: 44.42%
+Epoch 16/300: Train Loss: 0.164, Val Loss: 0.936, Train Acc: 93.75%, Val Acc: 49.60%, Test Acc: 48.88%
+Epoch 17/300: Train Loss: 0.174, Val Loss: 0.906, Train Acc: 93.75%, Val Acc: 49.33%, Test Acc: 50.00%
+Epoch 18/300: Train Loss: 0.169, Val Loss: 0.934, Train Acc: 94.56%, Val Acc: 49.60%, Test Acc: 48.44%
+Epoch 19/300: Train Loss: 0.131, Val Loss: 0.933, Train Acc: 95.16%, Val Acc: 48.26%, Test Acc: 49.11%
+Epoch 20/300: Train Loss: 0.159, Val Loss: 0.973, Train Acc: 93.95%, Val Acc: 45.31%, Test Acc: 47.10%
+Epoch 21/300: Train Loss: 0.148, Val Loss: 0.916, Train Acc: 94.35%, Val Acc: 47.72%, Test Acc: 47.10%
+Epoch 22/300: Train Loss: 0.146, Val Loss: 0.902, Train Acc: 95.56%, Val Acc: 49.60%, Test Acc: 52.90%
+Epoch 23/300: Train Loss: 0.117, Val Loss: 0.825, Train Acc: 95.36%, Val Acc: 55.23%, Test Acc: 52.68%
+Epoch 24/300: Train Loss: 0.137, Val Loss: 0.936, Train Acc: 94.96%, Val Acc: 46.38%, Test Acc: 47.77%
+Epoch 25/300: Train Loss: 0.163, Val Loss: 1.002, Train Acc: 93.95%, Val Acc: 44.24%, Test Acc: 48.44%
+Epoch 26/300: Train Loss: 0.135, Val Loss: 0.945, Train Acc: 95.16%, Val Acc: 48.53%, Test Acc: 48.88%
+Epoch 27/300: Train Loss: 0.108, Val Loss: 0.910, Train Acc: 96.57%, Val Acc: 51.21%, Test Acc: 47.99%
+Epoch 28/300: Train Loss: 0.121, Val Loss: 0.889, Train Acc: 95.56%, Val Acc: 51.21%, Test Acc: 51.34%
+Epoch 29/300: Train Loss: 0.133, Val Loss: 0.923, Train Acc: 95.56%, Val Acc: 50.40%, Test Acc: 47.32%
+Epoch 30/300: Train Loss: 0.107, Val Loss: 0.910, Train Acc: 96.37%, Val Acc: 52.01%, Test Acc: 53.57%
+Epoch 31/300: Train Loss: 0.154, Val Loss: 0.928, Train Acc: 95.16%, Val Acc: 49.60%, Test Acc: 45.98%
+Epoch 32/300: Train Loss: 0.105, Val Loss: 0.923, Train Acc: 95.77%, Val Acc: 50.13%, Test Acc: 53.57%
+Epoch 33/300: Train Loss: 0.149, Val Loss: 0.957, Train Acc: 94.35%, Val Acc: 48.53%, Test Acc: 52.23%
+Epoch 34/300: Train Loss: 0.136, Val Loss: 0.948, Train Acc: 94.56%, Val Acc: 51.74%, Test Acc: 49.33%
+Epoch 35/300: Train Loss: 0.121, Val Loss: 0.939, Train Acc: 96.57%, Val Acc: 50.13%, Test Acc: 53.35%
+Epoch 36/300: Train Loss: 0.103, Val Loss: 0.920, Train Acc: 95.77%, Val Acc: 50.94%, Test Acc: 49.33%
+Epoch 37/300: Train Loss: 0.127, Val Loss: 0.872, Train Acc: 95.36%, Val Acc: 54.69%, Test Acc: 52.90%
+Epoch 38/300: Train Loss: 0.094, Val Loss: 0.899, Train Acc: 97.58%, Val Acc: 49.87%, Test Acc: 48.44%
+Epoch 39/300: Train Loss: 0.109, Val Loss: 0.957, Train Acc: 95.97%, Val Acc: 49.06%, Test Acc: 47.77%
+Epoch 40/300: Train Loss: 0.089, Val Loss: 0.954, Train Acc: 96.17%, Val Acc: 49.87%, Test Acc: 54.69%
+Epoch 41/300: Train Loss: 0.119, Val Loss: 1.003, Train Acc: 96.37%, Val Acc: 47.99%, Test Acc: 46.88%
+Epoch 42/300: Train Loss: 0.115, Val Loss: 1.017, Train Acc: 95.77%, Val Acc: 48.53%, Test Acc: 49.78%
+Epoch 43/300: Train Loss: 0.110, Val Loss: 1.014, Train Acc: 96.17%, Val Acc: 46.65%, Test Acc: 51.12%
+Epoch 44/300: Train Loss: 0.102, Val Loss: 0.942, Train Acc: 96.77%, Val Acc: 50.67%, Test Acc: 50.45%
+[34m[1mwandb[0m: Ctrl + C detected. Stopping sweep.

@@ -1,0 +1,81 @@
+# Positive Proposals:27
+# Negative Proposals:469
+# Positive Proposals:24
+# Negative Proposals:349
+# Positive Proposals:22
+# Negative Proposals:426
+Base_Network(
+  (beginning): Sequential(
+    (0): Conv2d(3, 8, kernel_size=(7, 7), stride=(1, 1), padding=(3, 3))
+    (1): BatchNorm2d(8, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (convolutional): Sequential(
+    (0): Conv2d(8, 16, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (1): BatchNorm2d(16, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (2): ReLU()
+    (3): Dropout(p=0.5, inplace=False)
+    (4): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (5): Conv2d(16, 24, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (6): BatchNorm2d(24, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (7): ReLU()
+    (8): Dropout(p=0.5, inplace=False)
+    (9): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (10): Conv2d(24, 32, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (11): BatchNorm2d(32, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (12): ReLU()
+    (13): Dropout(p=0.5, inplace=False)
+    (14): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+    (15): Conv2d(32, 40, kernel_size=(3, 3), stride=(1, 1), padding=(1, 1))
+    (16): BatchNorm2d(40, eps=1e-05, momentum=0.1, affine=True, track_running_stats=True)
+    (17): ReLU()
+    (18): Dropout(p=0.5, inplace=False)
+    (19): MaxPool2d(kernel_size=2, stride=2, padding=0, dilation=1, ceil_mode=False)
+  )
+  (fully_connected): Sequential(
+    (0): Linear(in_features=640, out_features=512, bias=True)
+    (1): ReLU()
+    (2): Dropout(p=0.5, inplace=False)
+    (3): Linear(in_features=512, out_features=1, bias=True)
+  )
+)
+Traceback (most recent call last):
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 466, in run_wandb
+    train(model, optimizer, train_loader, val_loader, test_loader, criterion=bce_loss, num_epochs= config.epochs, run_id=run_id)
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 276, in train
+    for data, target, _ in train_loader:
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 630, in __next__
+    data = self._next_data()
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 1344, in _next_data
+    return self._process_data(data)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/dataloader.py", line 1370, in _process_data
+    data.reraise()
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/_utils.py", line 706, in reraise
+    raise exception
+TypeError: Caught TypeError in DataLoader worker process 0.
+Original Traceback (most recent call last):
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/_utils/worker.py", line 309, in _worker_loop
+    data = fetcher.fetch(index)  # type: ignore[possibly-undefined]
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/_utils/fetch.py", line 52, in fetch
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/utils/data/_utils/fetch.py", line 52, in <listcomp>
+    data = [self.dataset[idx] for idx in possibly_batched_index]
+  File "/work3/s214734/IDLCV_OD/main_time.py", line 143, in __getitem__
+    proposal = self.patch_transform(proposal)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torchvision/transforms/transforms.py", line 95, in __call__
+    img = t(img)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1553, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torch/nn/modules/module.py", line 1562, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torchvision/transforms/transforms.py", line 354, in forward
+    return F.resize(img, self.size, self.interpolation, self.max_size, self.antialias)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torchvision/transforms/functional.py", line 465, in resize
+    _, image_height, image_width = get_dimensions(img)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torchvision/transforms/functional.py", line 80, in get_dimensions
+    return F_pil.get_dimensions(img)
+  File "/zhome/5a/e/168430/.local/lib/python3.9/site-packages/torchvision/transforms/_functional_pil.py", line 31, in get_dimensions
+    raise TypeError(f"Unexpected type {type(img)}")
+TypeError: Unexpected type <class 'numpy.ndarray'>

@@ -1,0 +1,1 @@
+{"test_specificity":1,"_runtime":195.056005811,"run_id":"trwl962w","val_sensitivity":0,"test_acc":0.5044642857142857,"_step":43,"val_acc":0.5067024128686327,"epoch":43,"val_specificity":1,"_timestamp":1.7316113255943983e+09,"train_acc":0.967741935483871,"test_sensitivity":0,"_wandb":{"runtime":199},"train_specificity":0.9516129032258065,"train_sensitivity":0.9838709677419355}
