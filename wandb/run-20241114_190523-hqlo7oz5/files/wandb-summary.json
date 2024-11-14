@@ -1,0 +1,1 @@
+{"val_acc":0.22788203753351208,"_timestamp":1.7316077598054395e+09,"_wandb":{"runtime":237},"train_acc":0.2762096774193548,"test_specificity":0,"_step":35,"run_id":"hqlo7oz5","epoch":35,"train_sensitivity":1,"_runtime":235.914709689,"val_sensitivity":1,"train_specificity":0,"test_acc":0.27901785714285715,"val_specificity":0,"test_sensitivity":1}

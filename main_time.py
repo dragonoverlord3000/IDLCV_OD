@@ -32,38 +32,91 @@ except:
         os.chdir("./Courses/IDLCV_OD")
     except:
         ...
-# os.chdir("./IDLCV_OD")
+
 random.seed(6284)
 np.random.seed(6284)
 torch.manual_seed(6284)
+
+
+# ############################# #
+# Hyperparameters IMPORTANT!!!! #
+# ############################# #
+
+search_method:Union["SS", "EB"] = "SS"
+generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
+k1 = 0.2
+k2 = 0.6
+
+print(f"search_method: {search_method}, k1: {k1}, k2: {k2}")
+
 # ######## #
 # Datasets #
 # ######## #
 
+root = "./Data/Potholes"
+ids_train = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/train")]), key =lambda x: int(x))
+ids_test = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/test")]), key =lambda x: int(x))
+ids_validation = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/validation")]), key =lambda x: int(x))
+
+# Train
+image_paths_train = [f"{root}/train/img-{id}.jpg" for id in ids_train][:10]
+GT_train = [parse_xml(f"{root}/train/img-{id}.xml")[1] for id in ids_train][:10]
+pos_proposals_train = []
+pos_proposals_train_positions = []
+neg_proposals_train = []
+neg_proposals_train_positions = []
+for ip in tqdm(image_paths_train):
+    image = cv.imread(ip)
+    pp, _np = get_proposals(image, GT_train, k1=k1, k2=k2, generator=generator)
+    neg_proposals_train_positions += pp
+    neg_proposals_train_positions += _np
+    # Cut into patches
+    pp, _np = cut_patches(image, pp, _np)
+    pos_proposals_train += pp
+    neg_proposals_train += _np
+
+# Test
+image_paths_test = [f"{root}/test/img-{id}.jpg" for id in ids_test][:10]
+GT_test = [parse_xml(f"{root}/test/img-{id}.xml")[1] for id in ids_test][:10]
+pos_proposals_test = []
+pos_proposals_test_positions = []
+neg_proposals_test = []
+neg_proposals_test_positions = []
+for ip in tqdm(image_paths_test):
+    image = cv.imread(ip)
+    pp, _np = get_proposals(image, GT_test, k1=k1, k2=k2, generator=generator)
+    neg_proposals_test_positions += pp
+    neg_proposals_test_positions += _np
+    # Cut into patches
+    pp, _np = cut_patches(image, pp, _np)
+    pos_proposals_test += pp
+    neg_proposals_test += _np
+
+# Validation
+image_paths_validation = [f"{root}/validation/img-{id}.jpg" for id in ids_validation][:10]
+GT_validation = [parse_xml(f"{root}/validation/img-{id}.xml")[1] for id in ids_validation][:10]
+pos_proposals_validation = []
+pos_proposals_validation_positions = []
+neg_proposals_validation = []
+neg_proposals_validation_positions = []
+for ip in tqdm(image_paths_validation):
+    image = cv.imread(ip)
+    pp, _np = get_proposals(image, GT_validation, k1=k1, k2=k2, generator=generator)
+    neg_proposals_validation_positions += pp
+    neg_proposals_validation_positions += _np
+    # Cut into patches
+    pp, _np = cut_patches(image, pp, _np)
+    pos_proposals_validation += pp
+    neg_proposals_validation += _np
+
+
 # Define the CustomDataset class
 class CustomDataset(Dataset):
-    def __init__(self, root="./Data/Potholes", split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25, search_method:Union["SS", "EB"]="EB", k1=0.2, k2=0.6):
+    def __init__(self, split:Union["train", "test", "validation"]='train', patch_transform:transforms.Compose=None, prop_pos:float=0.25):
         self.prop_pos = prop_pos
         self.patch_transform = patch_transform
-        self.k1 = k1
-        self.k2 = k2
-        self.pos_proposals = []
-        self.neg_proposals = []
-
-        ids = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")]), key =lambda x: int(x))
-        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][:10]
-        print(self.image_paths)
-        self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids][:10]
-        self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
-        print(self.generator)
-
-        for ip in tqdm(self.image_paths):
-            image = cv.imread(ip)
-            pp, np = get_proposals(image, self.GT, k1=self.k1, k2=self.k2, generator=self.generator)
-            # Cut into patches
-            pp, np = cut_patches(image, pp, np)
-            self.pos_proposals += pp
-            self.neg_proposals += np
+        self.pos_proposals = {"train": pos_proposals_train, "test": pos_proposals_test, "validation": pos_proposals_validation}[split]
+        self.neg_proposals = {"train": neg_proposals_train, "test": neg_proposals_test, "validation": neg_proposals_validation}[split]
         print(f'# Positive Proposals:{len(self.pos_proposals)}')
         print(f'# Negative Proposals:{len(self.neg_proposals)}')
 
@@ -76,17 +129,20 @@ class CustomDataset(Dataset):
         # Get positive class
         target = 1 # 1 is class, 0 is background
         proposal = None
+        index = None
         if random.random() < self.prop_pos:
-            proposal = self.pos_proposals[idx % len(self.pos_proposals)]
+            index = idx % len(self.pos_proposals)
+            proposal = self.pos_proposals[index]
         else:
             target = 0
-            proposal = self.neg_proposals[idx % len(self.neg_proposals)]
+            index = idx % len(self.neg_proposals)
+            proposal = self.neg_proposals[index]
 
         # Apply transformations
         if self.patch_transform:
             proposal = self.patch_transform(proposal)
 
-        return proposal, target
+        return proposal, target, index ####             TEITUR HERE IS THE INDEX TO GET WHERE THE PATCH IS - USE: (TARGET + SPLIT TYPE + INDEX) TO GET E.G neg_proposals_validation_positions[index], see code above custom dataset class
 
 
 # Define helper functions
@@ -118,13 +174,13 @@ def build_datasets(config):
     ])
 
     # The datasets
-    train_dataset = CustomDataset(split='train', patch_transform=patch_transform, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
-    val_dataset = CustomDataset(split='validation', patch_transform=patch_transform, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
-    test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=config.prop_pos, search_method=config.search_method, k1=config.k1, k2=config.k2)
+    train_dataset = CustomDataset(split='train', patch_transform=patch_transform, prop_pos=config.prop_pos)
+    val_dataset = CustomDataset(split='validation', patch_transform=patch_transform, prop_pos=config.prop_pos)
+    test_dataset = CustomDataset(split='test', patch_transform=patch_transform, prop_pos=config.prop_pos)
 
     train_loader = DataLoader(train_dataset, batch_size=config.batch_size, shuffle=SHUFFLE, num_workers=NUM_WORKERS)
-    val_loader = DataLoader(val_dataset, batch_size=1, num_workers=NUM_WORKERS)
-    test_loader = DataLoader(test_dataset, batch_size=1, num_workers=NUM_WORKERS)
+    val_loader = DataLoader(val_dataset, batch_size=config.batch_size, num_workers=NUM_WORKERS)
+    test_loader = DataLoader(test_dataset, batch_size=config.batch_size, num_workers=NUM_WORKERS)
 
     return train_loader, val_loader, test_loader, train_dataset, val_dataset, test_dataset
 
@@ -211,7 +267,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
         train_targets = []
 
         # Training phase
-        for data, target in train_loader:
+        for data, target, _ in train_loader:
             data, target = data.to(device), target.to(device).float().unsqueeze(1)
             optimizer.zero_grad()
             output = model(data)
@@ -233,7 +289,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
         model.eval()
 
         with torch.no_grad():
-            for data, target in val_loader:
+            for data, target, _ in val_loader:
                 data, target = data.to(device), target.to(device).float().unsqueeze(1)
                 output = model(data)
                 loss = criterion(output, target)
@@ -251,7 +307,7 @@ def train(model, optimizer, train_loader, val_loader, test_loader, criterion, nu
         model.eval()
 
         with torch.no_grad():
-            for data, target in test_loader:
+            for data, target, _ in test_loader:
                 data, target = data.to(device), target.to(device).float().unsqueeze(1)
                 output = model(data)
 
@@ -312,15 +368,6 @@ metric = {
 parameters_dict = {
     'prop_pos': {
         'values': [0.25, 0.5] 
-    },
-    'search_method': {
-        'values': ['EB']#,'SS'] 
-    },
-    'k1': {
-        'values': [0.3,0.2]
-    },
-    'k2': {
-        'values': [0.7,0.6]
     },
     'dropout' : {
         'values' : [0.2, 0.5]
