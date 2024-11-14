@@ -52,7 +52,7 @@ class CustomDataset(Dataset):
         self.threshold = threshold
 
         ids = sorted(set([fn.split("-")[1].split(".")[0] for fn in os.listdir(f"{root}/{split}")]), key =lambda x: int(x))
-        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids]
+        self.image_paths = [f"{root}/{split}/img-{id}.jpg" for id in ids][:2]
         print(self.image_paths)
         self.GT = [parse_xml(f"{root}/{split}/img-{id}.xml")[1] for id in ids]
         self.generator = _SelectiveSearch if search_method == "SS" else _EdgeBox
@@ -168,7 +168,7 @@ def bce_loss(y_pred, y_real):
 def compute_metrics(preds, targets):
 
     preds[preds<0.5] = 0 
-    preds[preds>0.5] = 1
+    preds[preds>=0.5] = 1
     # Calculate accuracy
     acc = accuracy_score(targets, preds)
     
