@@ -154,13 +154,9 @@ if False:
     plt.close()
 
 # Define the build_optimizer function
-def build_optimizer(model, optimizer_name, learning_rate):
-    if optimizer_name == "sgd":
-        optimizer = optim.SGD(model.parameters(), lr=learning_rate)
-    elif optimizer_name == 'adam':
-        optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
-    else:
-        raise ValueError(f"Unknown optimizer: {optimizer_name}")
+def build_optimizer(model, learning_rate):
+    optimizer = optim.Adam(model.parameters(), lr=learning_rate, weight_decay=1e-5)
+
     return optimizer
 
 # Define loss functions
